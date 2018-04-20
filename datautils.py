@@ -10,7 +10,7 @@ def document_tokenize(path):
         except UnicodeDecodeError:
             text = f.read().decode('latin1')
         text = re.sub('\n', ' ', text)
-        text = re.sub('([()[\]{}])', r' \1 ', text)
+        text = re.sub('([()[\]{}"])', r' \1 ', text)
     sentences = nltk.sent_tokenize(text)
     tokenized_sentences = []
     for s in sentences:
@@ -20,7 +20,7 @@ def document_tokenize(path):
 
 def tokenize_sent(s):
     tokens = re.split('(\w+)', s)
-    tokens = [w.strip().lower() for w in tokens if w not in ['', ' ']]
+    tokens = [w.strip().lower() for w in tokens if w.strip() != '']
     return tokens
 
 
