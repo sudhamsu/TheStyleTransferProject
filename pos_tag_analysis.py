@@ -47,10 +47,8 @@ plt.xlabel("POS TAGS")
 plt.ylabel("Percentage")
 #plt.show()
 plt.savefig("output.png")
-with open('tags.pickle','wb') as f:
-    d = {x:TAGS[x] for x in indices}
-    pickle.dump(d, f)
 
+print(means)
 means = [val / float(5) for val in means]
 plt.figure(2)
 for j, (key, values) in enumerate(tags_per_genre.items()):
