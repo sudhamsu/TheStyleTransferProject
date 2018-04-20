@@ -3,16 +3,20 @@ import nltk
 
 PATH = './Gutenberg'
 
-def document_tokenize(path):
+
+def document_tokenize(path, tokenize_words=True):
     with open(path, 'r') as f:
         text = f.read()
         text = re.sub('\n', ' ', text)
         text = re.sub('([()[\]{}])', r' \1 ', text)
     sentences = nltk.sent_tokenize(text)
     tokenized_sentences = []
-    for s in sentences:
-        tokenized_sentences.append(tokenize_sent(s))
-    return tokenized_sentences
+    if tokenize_words:
+        for s in sentences:
+            tokenized_sentences.append(tokenize_sent(s))
+        return tokenized_sentences
+    else:
+        return sentences
 
 
 def tokenize_sent(s):
