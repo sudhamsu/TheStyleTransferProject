@@ -5,10 +5,7 @@ PATH = './Gutenberg'
 
 def document_tokenize(path):
     with open(path, 'r') as f:
-        try:
-            text = f.read().decode('utf8')
-        except UnicodeDecodeError:
-            text = f.read().decode('latin1')
+        text = f.read()
         text = re.sub('\n', ' ', text)
         text = re.sub('([()[\]{}"])', r' \1 ', text)
     sentences = nltk.sent_tokenize(text)
