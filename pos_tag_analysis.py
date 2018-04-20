@@ -40,7 +40,7 @@ for j, (key, values) in enumerate(tags_per_genre.items()):
     X = indices
     Y = [values[TAGS[x]]/float(total_tags_per_genre[key]) * 100 for x in indices]
     means = [means[i] + Y[i] for i in indices]
-    plt.plot(X, Y, label=key, color=color_g[key])
+    plt.plot(X, Y, label=key, c=color_g[key])
 plt.legend()
 plt.xticks(indices, TAGS, rotation="vertical")
 plt.xlabel("POS TAGS")
@@ -56,7 +56,7 @@ plt.figure(2)
 for j, (key, values) in enumerate(tags_per_genre.items()):
     X = indices
     Y = [values[TAGS[x]]-means[x] for x in indices]
-    plt.plot(X, Y, label=key, color=color_g[key])
+    plt.plot(X, Y, label=key, c=color_g[key])
 plt.legend()
 plt.xticks(indices, TAGS, rotation="vertical")
 plt.xlabel("POS TAGS")
@@ -76,7 +76,7 @@ for g in genres:
             X = indices
             Y = [values[TAGS[x]]/float(total_tags_per_author[key]) * 100 for x in indices]
             means = [means[i] + Y[i] for i in indices]
-            plt.plot(X, Y, label=key, color=colors[j])
+            plt.plot(X, Y, label=key, c=colors[j])
     plt.legend()
     plt.xticks(indices, TAGS, rotation="vertical")
     plt.xlabel("POS TAGS")
@@ -93,7 +93,7 @@ for g in genres:
             X = indices
             Y = [values[TAGS[x]] - means[x] for x in indices]
             means = [means[i] + Y[i] for i in indices]
-            plt.plot(X, Y, label=key, color=colors[j])
+            plt.plot(X, Y, label=key, c=colors[j])
     plt.legend()
     plt.xticks(indices, TAGS, rotation="vertical")
     plt.xlabel("POS TAGS")
