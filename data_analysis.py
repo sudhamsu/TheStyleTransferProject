@@ -11,6 +11,9 @@ sentences_per_author = defaultdict(int)
 tokens_per_genre = defaultdict(int)
 tokens_per_author = defaultdict(int)
 
+total_tokens = 0
+total_vocab = defaultdict(int)
+
 for g in genres:
     print("Genre: {}".format(g))
     gpath = os.path.join(PATH, g)
@@ -26,9 +29,13 @@ for g in genres:
                 vocab_per_genre[g][word] += 1
                 tokens_per_author[g+'_'+a] += 1
                 tokens_per_genre[g] += 1
+                total_vocab[word] += 1
+                total_tokens += 1
     #print(vocab_per_genre[g])
     #print('Number of words in the genre {} are: {}'.format(g, len(vocab_per_genre[g])))
-print("Number of sentences in each genre")
+print("Total Vocab: {}".format(len(total_vocab)))
+print("Total number of tokens: {}".format(total_tokens))
+print("\nNumber of sentences in each genre")
 print_dict(sentences_per_genre)
 print("\nNumber of sentences for each author")
 print_dict(sentences_per_author)
