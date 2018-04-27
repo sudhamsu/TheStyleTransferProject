@@ -1,0 +1,112 @@
+Genre: Adventure
+Genre: Fantasy
+Genre: Detective
+Genre: Horror
+Genre: Humor
+Number of sentences in each genre
+--------------------------------------------------
+Humor	135059
+Horror	100030
+Detective	119772
+Fantasy	98279
+Adventure	129702
+
+Number of sentences for each author
+--------------------------------------------------
+Adventure_Jack_London.txt	31070
+Fantasy_Lyman_Frank_Baum.txt	31186
+Fantasy_William_Morris.txt	13613
+Humor_Jerome_Klapka_Jerome.txt	25550
+Fantasy_Howard_Pyle.txt	18082
+Humor_Stephen_Leacock.txt	32090
+Detective_R_Austin_Freeman.txt	27714
+Fantasy_Edward_John_Moreton.txt	9410
+Horror_Bram_Stoker.txt	26902
+Humor_Finley_Peter_Dunne.txt	13825
+Humor_John_Kendrick_Bangs.txt	17051
+Adventure_Edgar_Rice_Burrough.txt	23733
+Adventure_Henry_Rider_Haggard.txt	26653
+Detective_Sir_Arthur_Conan_Doyle.txt	27550
+Horror_Ambrose_Bierce.txt	22925
+Horror_Henry_James.txt	23037
+Fantasy_James_Branch_Cabell.txt	25988
+Humor_P_G_Wodehouse.txt	46543
+Horror_Algernon_Blackwood.txt	6768
+Horror_Edgar_Allan_Poe.txt	20398
+Detective_Emile_Gaboriau.txt	28408
+Detective_Wilkie_Collins.txt	21260
+Adventure_Rudyard_Kipling.txt	27589
+Adventure_Robert_Louis_Stevenson.txt	20657
+Detective_Anna_Katharine_Green.txt	14840
+
+Number of unique words in each genre
+--------------------------------------------------
+Detective	35267
+Humor	44955
+Horror	48278
+Fantasy	39632
+Adventure	44882
+
+Number of unique words for each author
+--------------------------------------------------
+Humor_Stephen_Leacock.txt	21806
+Humor_John_Kendrick_Bangs.txt	16920
+Fantasy_William_Morris.txt	14247
+Adventure_Rudyard_Kipling.txt	25411
+Fantasy_Howard_Pyle.txt	14774
+Adventure_Jack_London.txt	19602
+Detective_R_Austin_Freeman.txt	17044
+Fantasy_Edward_John_Moreton.txt	11189
+Horror_Bram_Stoker.txt	17267
+Humor_Finley_Peter_Dunne.txt	15949
+Adventure_Edgar_Rice_Burrough.txt	16130
+Adventure_Henry_Rider_Haggard.txt	14254
+Adventure_Robert_Louis_Stevenson.txt	21423
+Horror_Ambrose_Bierce.txt	28053
+Horror_Henry_James.txt	20704
+Horror_Edgar_Allan_Poe.txt	24124
+Fantasy_James_Branch_Cabell.txt	24568
+Humor_P_G_Wodehouse.txt	19822
+Horror_Algernon_Blackwood.txt	9609
+Humor_Jerome_Klapka_Jerome.txt	18211
+Detective_Emile_Gaboriau.txt	16932
+Detective_Wilkie_Collins.txt	16828
+Fantasy_Lyman_Frank_Baum.txt	17241
+Detective_Sir_Arthur_Conan_Doyle.txt	20345
+Detective_Anna_Katharine_Green.txt	12476
+
+Number of tokens per genre
+--------------------------------------------------
+Humor	2436288
+Horror	2434892
+Detective	2744073
+Fantasy	2431615
+Adventure	2713178
+
+Number of tokens for each author
+--------------------------------------------------
+Adventure_Jack_London.txt	522756
+Fantasy_Lyman_Frank_Baum.txt	563206
+Fantasy_William_Morris.txt	571731
+Humor_Jerome_Klapka_Jerome.txt	482165
+Fantasy_Howard_Pyle.txt	488855
+Humor_Stephen_Leacock.txt	607601
+Detective_R_Austin_Freeman.txt	570669
+Fantasy_Edward_John_Moreton.txt	252432
+Horror_Bram_Stoker.txt	572043
+Humor_Finley_Peter_Dunne.txt	321525
+Humor_John_Kendrick_Bangs.txt	363311
+Adventure_Edgar_Rice_Burrough.txt	494682
+Adventure_Henry_Rider_Haggard.txt	606859
+Detective_Sir_Arthur_Conan_Doyle.txt	537088
+Horror_Ambrose_Bierce.txt	537388
+Horror_Henry_James.txt	610661
+Fantasy_James_Branch_Cabell.txt	555391
+Humor_P_G_Wodehouse.txt	661686
+Horror_Algernon_Blackwood.txt	146086
+Horror_Edgar_Allan_Poe.txt	568714
+Detective_Emile_Gaboriau.txt	716720
+Detective_Wilkie_Collins.txt	553766
+Adventure_Rudyard_Kipling.txt	571649
+Adventure_Robert_Louis_Stevenson.txt	517232
+Detective_Anna_Katharine_Green.txt	365830
