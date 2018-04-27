@@ -25,9 +25,9 @@ for g in genres:
             tags = pos_tag(sent)
             for word, tag in tags:
                 tags_per_genre[g][tag] += 1
-                tags_per_author[a][tag] += 1
+                tags_per_author[g + '_' + a][tag] += 1
                 total_tags_per_genre[g] += 1
-                total_tags_per_author[a] += 1
+                total_tags_per_author[g + '_' + a] += 1
                 all_tags.update([tag])
 
 print_dict(total_tags_per_genre)
@@ -46,23 +46,20 @@ plt.xticks(indices, TAGS, rotation="vertical")
 plt.xlabel("POS TAGS")
 plt.ylabel("Percentage")
 #plt.show()
-plt.savefig("output.png")
-with open('tags.pickle','wb') as f:
-    d = {x:TAGS[x] for x in indices}
-    pickle.dump(d, f)
+plt.savefig("./plots/output.png")
 
 means = [val / float(5) for val in means]
 plt.figure(2)
 for j, (key, values) in enumerate(tags_per_genre.items()):
     X = indices
-    Y = [values[TAGS[x]]-means[x] for x in indices]
+    Y = [values[TAGS[x]]/float(total_tags_per_genre[key]) * 100 - mean[x] for x in indices]
     plt.plot(X, Y, label=key, color=color_g[key])
 plt.legend()
 plt.xticks(indices, TAGS, rotation="vertical")
 plt.xlabel("POS TAGS")
 plt.ylabel("deviation from mean")
 #plt.show()
-plt.savefig("output_against_mean.png")
+plt.savefig("./plots/output_against_mean.png")
 
 j = 3
 for g in genres:
@@ -70,33 +67,37 @@ for g in genres:
     plt.figure(j)
     j += 1
     means = [0]*len(TAGS)
-    for j, (key, values) in enumerate(tags_per_author.items()):
+    m = 0
+    for k, (key, values) in enumerate(tags_per_author.items()):
         genre = key.split('_')[0]
         if genre == g:
+            print(genre, g)
             X = indices
             Y = [values[TAGS[x]]/float(total_tags_per_author[key]) * 100 for x in indices]
             means = [means[i] + Y[i] for i in indices]
-            plt.plot(X, Y, label=key, color=colors[j])
+            plt.plot(X, Y, label=key, color=colors[m])
+            m += 1
     plt.legend()
     plt.xticks(indices, TAGS, rotation="vertical")
     plt.xlabel("POS TAGS")
     plt.ylabel("Percentage")
     #plt.show()
-    plt.savefig("output_{}.png".format(g))
+    plt.savefig("./plots/output_{}.png".format(g))
 
     means = [m/float(5) for m in means]
     plt.figure(j)
     j += 1
-    for j, (key, values) in enumerate(tags_per_author.items()):
+    m = 0
+    for k, (key, values) in enumerate(tags_per_author.items()):
         genre = key.split('_')[0]
         if genre == g:
             X = indices
-            Y = [values[TAGS[x]] - means[x] for x in indices]
-            means = [means[i] + Y[i] for i in indices]
-            plt.plot(X, Y, label=key, color=colors[j])
+            Y = [values[TAGS[x]]/float(total_tags_per_author[key]) * 100 - means[x] for x in indices]
+            plt.plot(X, Y, label=key, color=colors[m])
+            m += 1
     plt.legend()
     plt.xticks(indices, TAGS, rotation="vertical")
     plt.xlabel("POS TAGS")
     plt.ylabel("deviation from mean")
     #plt.show()
-    plt.savefig("output_against_mean_{}.png".format(g))
+    plt.savefig("./plots/output_against_mean_{}.png".format(g))
