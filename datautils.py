@@ -2,13 +2,14 @@ import re
 import nltk
 
 PATH = './Gutenberg'
+VOCAB_PATH = './seq2seq'
 
 
 def document_tokenize(path, tokenize_words=True):
     with open(path, 'r') as f:
         text = f.read()
         text = re.sub('\n', ' ', text)
-        text = re.sub('([()[\]{}"])', r' \1 ', text)
+        text = re.sub('([()[\]{}",_;])', r' \1 ', text)
     sentences = nltk.sent_tokenize(text)
     tokenized_sentences = []
     if tokenize_words:
@@ -22,6 +23,7 @@ def document_tokenize(path, tokenize_words=True):
 def tokenize_sent(s):
     tokens = re.split('(\w+)', s)
     tokens = [w.strip().lower() for w in tokens if w.strip() != '']
+    tokens = [word for t in tokens for word in t.split()]
     return tokens
 
 
