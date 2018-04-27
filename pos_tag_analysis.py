@@ -34,7 +34,7 @@ print_dict(total_tags_per_genre)
 TAGS = list(all_tags)
 means = [0]*len(TAGS)
 indices = [x for x in range(len(TAGS))]
-color_g={'Adventure':'b','Horror': 'k', 'Humor': 'c', 'Fantasy': 'r', 'Detective_Fiction':'g'}
+color_g={'Adventure':'b','Horror': 'k', 'Humor': 'c', 'Fantasy': 'r', 'Detective':'g'}
 plt.figure(1)
 for j, (key, values) in enumerate(tags_per_genre.items()):
     X = indices
