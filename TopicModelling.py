@@ -1,5 +1,7 @@
 import numpy
 import gensim
+import re
+import sys
 from collections import defaultdict
 from gensim.parsing.preprocessing import STOPWORDS
 import datautils
@@ -45,11 +47,21 @@ doc_paths = ['Gutenberg/Adventure/Edgar_Rice_Burrough.txt',
              'Gutenberg/Humor/Stephen_Leacock.txt']
 
 
+def combine_authors():
+    genres = defaultdict(list)
+    for path in doc_paths:
+        g = re.findall('Gutenberg/.*/.*\.txt',path)[0]
+        genres[g].append(path)
+    return genres
+
 class Corpus(object):
-    def __init__(self, list_of_docs, clip_docs=None):
+    def __init__(self, list_of_docs, clip_docs=None, combine=False):
         self.list_of_docs = list_of_docs
         self.dictionary = self.generate_dictionary()
         self.clip_docs = clip_docs
+        self.combine = combine
+        if combine == True:
+            self.docs_per_genre = combine_authors().values()
 
     def generate_dictionary(self):
         doc_stream = (tokens for tokens in self.iter_docs())
@@ -70,11 +82,21 @@ class Corpus(object):
         #     yield sent
 
     def __iter__(self):
-        for doc in self.list_of_docs:
-            doc_sentences = datautils.document_tokenize(doc)
-            tokens = [item for sublist in doc_sentences for item in sublist]
-            tokens = [word for word in tokens if word not in STOPWORDS]
-            yield self.dictionary.doc2bow(tokens)
+        if self.combine == True:
+            for genre in self.docs_per_genre:
+                final_doc = []
+                for doc in genre:
+                    doc_sentences = datautils.document_tokenize(doc)
+                    tokens = [item for sublist in doc_sentences for item in sublist]
+                    tokens = [word for word in tokens if word not in STOPWORDS]
+                    final_doc.extend(tokens)
+                yield self.dictionary.doc2bow(final_doc)
+        else:
+            for doc in self.list_of_docs:
+                doc_sentences = datautils.document_tokenize(doc)
+                tokens = [item for sublist in doc_sentences for item in sublist]
+                tokens = [word for word in tokens if word not in STOPWORDS]
+                yield self.dictionary.doc2bow(tokens)
         # for sent in sents:
         #     tokens = [word for word in sent if word not in STOPWORDS]
         #     yield self.dictionary.doc2bow(tokens)
@@ -83,13 +105,17 @@ class Corpus(object):
         return self.clip_docs
 
 
-corpus = Corpus(doc_paths)
+if sys.argv[1] == 'a':
+    corpus = Corpus(doc_paths)
+elif sys.argv[1] == 'g':
+    corpus = Corpus(doc_paths, combine=True)
+
 print('Dictionary size:', len(corpus.dictionary))
 # for vec in iter(corpus):
 #     for i, j in vec:
 #         print('('+corpus.dictionary[i]+', '+str(i)+', '+str(j)+')', end=' ')
 #     print()
 
-lda_model = gensim.models.LdaModel(corpus, num_topics=10, id2word=corpus.dictionary, passes=5)
+lda_model = gensim.models.LdaModel(corpus, num_topics=50, id2word=corpus.dictionary, passes=5)
 top_words = [[word for word, _ in lda_model.show_topic(topicno, topn=10)] for topicno in range(lda_model.num_topics)]
 print(top_words)
