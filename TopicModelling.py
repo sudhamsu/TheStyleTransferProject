@@ -1,3 +1,4 @@
+import numpy
 import gensim
 import re
 import sys
