@@ -31,6 +31,8 @@ LOAD_DIR = SAVE_DIR  # TODO
 
 authors = ["../Gutenberg/Fantasy/Howard_Pyle.txt", "../Gutenberg/Fantasy/William_Morris.txt"]
 
+print('Loading data... ', end='')
+
 if not os.path.exists('vocab.txt'):
     create_vocab('../Gutenberg', min_count=MIN_COUNT)
 
@@ -40,7 +42,7 @@ data = [(a, sent)
         for a, author in enumerate(authors)
         for sent in np.random.choice(document_tokenize(author, max_length=MAX_LENGTH, tokenize_words=True),
                                      SENTS_PER_AUTHOR, replace=False)]
-print('Total number of sentences:', len(data))
+print('Done!\nTotal number of sentences:', len(data))
 # data = [document_tokenize(author, tokenize_words=True) for author in authors]
 # dlo = DataLoader(data, word2num, BATCH_SIZE, MAX_LENGTH)
 

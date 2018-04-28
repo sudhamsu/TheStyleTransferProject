@@ -64,11 +64,11 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
 
 def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_every=1000, learning_rate=1e-2,
                 save_dir='output'):
+    print('Setting up trainer... ', end='')
     encoder.train()
     for d in decoders:
         d.train()
 
-    start = time.time()
     loss_total = 0  # Reset every print_every
     losses = []
     # max_len = max([len(line) for line in data])
@@ -79,6 +79,8 @@ def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_e
 
     iters_per_epoch = len(data)
 
+    print('Done!\nTraining...')
+    start = time.time()
     for e in range(epochs):
         itr = 1
         np.random.shuffle(data)
