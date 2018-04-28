@@ -2,7 +2,6 @@ import re
 import nltk
 
 PATH = './Gutenberg'
-VOCAB_PATH = './seq2seq'
 
 
 def document_tokenize(path, tokenize_words=True):

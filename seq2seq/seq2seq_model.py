@@ -1,15 +1,14 @@
 from __future__ import unicode_literals, print_function, division
 import sys
-sys.path.append('/home/tanvi/UMass/spring_2018/advanced-NLP/Project/TheStyleTransferProject')
+sys.path.append('../')
 from utility_functions import *
 from datautils import *
-
 import torch
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 
-device = torch.device("cpu")
+# device = torch.device("cpu")
 
 
 """
@@ -18,6 +17,8 @@ between author 1 and author 2.
 
 http://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html <-- code adapted from here
 """
+
+MAX_LENGTH = 10
 
 author1 = "../Gutenberg/Fantasy/Howard_Pyle.txt"
 author2 = "../Gutenberg/Fantasy/William_Morris.txt"
@@ -44,7 +45,7 @@ class EncoderRNN(nn.Module):
         return output, hidden
 
     def initHidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=device)
+        return torch.zeros(1, 1, self.hidden_size)#, device=device)
 
 
 class DecoderRNN(nn.Module):
@@ -65,8 +66,43 @@ class DecoderRNN(nn.Module):
         return output, hidden
 
     def initHidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=device)
+        return torch.zeros(1, 1, self.hidden_size)#, device=device)
 
+class AttnDecoderRNN(nn.Module):
+    def __init__(self, hidden_size, output_size, dropout_p=0.1, max_length=MAX_LENGTH):
+        super(AttnDecoderRNN, self).__init__()
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.dropout_p = dropout_p
+        self.max_length = max_length
+
+        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+        self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
+        self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
+        self.dropout = nn.Dropout(self.dropout_p)
+        self.gru = nn.GRU(self.hidden_size, self.hidden_size)
+        self.out = nn.Linear(self.hidden_size, self.output_size)
+
+    def forward(self, input, hidden, encoder_outputs):
+        embedded = self.embedding(input).view(1, 1, -1)
+        embedded = self.dropout(embedded)
+
+        attn_weights = F.softmax(
+            self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1)
+        attn_applied = torch.bmm(attn_weights.unsqueeze(0),
+                                 encoder_outputs.unsqueeze(0))
+
+        output = torch.cat((embedded[0], attn_applied[0]), 1)
+        output = self.attn_combine(output).unsqueeze(0)
+
+        output = F.relu(output)
+        output, hidden = self.gru(output, hidden)
+
+        output = F.log_softmax(self.out(output[0]), dim=1)
+        return output, hidden, attn_weights
+
+    def initHidden(self):
+        return torch.zeros(1, 1, self.hidden_size)#, device=device)
 
 def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length):
     encoder_hidden = encoder.initHidden()
@@ -77,7 +113,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     input_length = input_tensor.size(0)
     target_length = target_tensor.size(0)
 
-    encoder_outputs = torch.zeros(max_length, encoder.hidden_size, device=device)
+    encoder_outputs = torch.zeros(max_length, encoder.hidden_size)#, device=device)
 
     loss = 0
 
@@ -86,7 +122,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
             input_tensor[ei], encoder_hidden)
         encoder_outputs[ei] = encoder_output[0, 0]
 
-    decoder_input = torch.tensor([[SOS]], device=device)
+    decoder_input = torch.tensor([[SOS]])#, device=device)
 
     decoder_hidden = encoder_hidden
 
@@ -122,40 +158,45 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
 
 
 
-def trainIters(data, encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.01):
+def trainIters(data, encoder, decoder, epochs, print_every=1000, plot_every=100, learning_rate=0.01):
+    print('Inside trainIters...')
     start = time.time()
     #plot_losses = []
     print_loss_total = 0  # Reset every print_every
     plot_loss_total = 0  # Reset every plot_every
-    max_len = max([len(line) for line in data])
+    # max_len = max([len(line) for line in data])
+    max_len = MAX_LENGTH
 
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
-    training_pairs = [torch.tensor(enc_input, dtype=torch.long, device=device).view(-1, 1)
-                      for enc_input, dec_input, dec_output in minibatches(data, word2num)
-                      for i in range(n_iters)]
     criterion = nn.NLLLoss()
 
-    for iter in range(1, n_iters + 1):
-        training_pair = training_pairs[iter - 1]
-        input_tensor = training_pair[0]
-        target_tensor = training_pair[1]
+    for e in range(epochs):
+        iter = 0
+        for batch in minibatches(data, word2num):
+            print('iter:', iter)
+            training_pair = torch.LongTensor(batch).view(-1, 1)#, device=device).view(-1, 1)
+            input_tensor = training_pair
+            target_tensor = training_pair
 
-        loss = train(input_tensor, target_tensor, encoder,
-                     decoder, encoder_optimizer, decoder_optimizer, criterion, max_len)
-        print_loss_total += loss
-        plot_loss_total += loss
+            loss = train(input_tensor, target_tensor, encoder,
+                         decoder, encoder_optimizer, decoder_optimizer, criterion, max_len)
+            print_loss_total += loss
+            plot_loss_total += loss
 
-        if iter % print_every == 0:
-            print_loss_avg = print_loss_total / print_every
-            print_loss_total = 0
-            print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
-                                         iter, iter / n_iters * 100, print_loss_avg))
+            if iter % print_every == 0:
+                print_loss_avg = print_loss_total / print_every
+                print_loss_total = 0
+                print('loss:',print_loss_avg)
+                # print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
+                #                              iter, iter / n_iters * 100, print_loss_avg))
 
-        #if iter % plot_every == 0:
-        #    plot_loss_avg = plot_loss_total / plot_every
-        #    plot_losses.append(plot_loss_avg)
-        #    plot_loss_total = 0
+            #if iter % plot_every == 0:
+            #    plot_loss_avg = plot_loss_total / plot_every
+            #    plot_losses.append(plot_loss_avg)
+            #    plot_loss_total = 0
+
+            iter += 1
 
 
 if __name__ == '__main__':
@@ -166,7 +207,7 @@ if __name__ == '__main__':
     data2 = document_tokenize(author2, tokenize_words=True)
 
     hidden_size = 256
-    encoder1 = EncoderRNN(len(word2num), hidden_size).to(device)
-    attn_decoder1 = DecoderRNN(hidden_size, len(word2num)).to(device)
+    encoder1 = EncoderRNN(len(word2num), hidden_size)#.to(device)
+    attn_decoder1 = AttnDecoderRNN(hidden_size, len(word2num))#.to(device)
 
-    trainIters(data1, encoder1, attn_decoder1, 75000, print_every=5000)
+    trainIters(data1, encoder1, attn_decoder1, 5, print_every=1)
