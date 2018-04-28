@@ -15,14 +15,17 @@ import matplotlib.ticker as ticker
 VOCAB_PATH = 'vocab.txt'
 
 
-def showPlot(points):
+def savePlot(filepath, points, print_every):
     plt.figure()
     fig, ax = plt.subplots()
     # this locator puts ticks at regular intervals
-    loc = ticker.MultipleLocator(base=0.2)
-    ax.yaxis.set_major_locator(loc)
+    # loc = ticker.MultipleLocator(base=0.2)
+    # ax.yaxis.set_major_locator(loc)
+    plt.xlabel('Iterations (x'+str(print_every)+')')
+    plt.ylabel('Loss')
     plt.plot(points)
-    plt.savefig('output/loss_curve.png')
+    plt.tight_layout()
+    plt.savefig(filepath)
     plt.close()
 
 """

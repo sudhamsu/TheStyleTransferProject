@@ -5,6 +5,7 @@ from torch import optim
 import datetime
 
 
+EOS = 0
 SOS = 1
 
 
@@ -50,7 +51,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
             decoder_input = topi.squeeze().detach()  # detach from history as input
 
             loss += criterion(decoder_output, target_tensor[di])
-            if decoder_input.item() == 0:
+            if decoder_input.item() == EOS:
                 break
 
     loss.backward()
@@ -61,18 +62,26 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     return loss.item() / target_length
 
 
-def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_every=1000, learning_rate=0.01):
+def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_every=1000, learning_rate=1e-2,
+                save_dir='output'):
+    encoder.train()
+    for d in decoders:
+        d.train()
+
     start = time.time()
     loss_total = 0  # Reset every print_every
     losses = []
     # max_len = max([len(line) for line in data])
 
-    encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
-    decoder_optimizers = [optim.SGD(d.parameters(), lr=learning_rate) for d in decoders]
+    encoder_optimizer = optim.Adagrad(encoder.parameters(), lr=learning_rate)
+    decoder_optimizers = [optim.Adagrad(d.parameters(), lr=learning_rate) for d in decoders]
     criterion = nn.NLLLoss()
+
+    iters_per_epoch = len(data)
 
     for e in range(epochs):
         itr = 1
+        np.random.shuffle(data)
         for a, batch in minibatches(data, word2num, max_length=max_length):
             input_tensor = torch.LongTensor(batch).view(-1, 1)
 
@@ -84,16 +93,73 @@ def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_e
                 print_loss_avg = loss_total / print_every
                 loss_total = 0
                 losses.append(print_loss_avg)
-                print('{:%H:%M:%S} loss:{}'.format(datetime.datetime.now(), print_loss_avg))
-                # print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
-                #                              iter, iter / n_iters * 100, print_loss_avg))
+                # print('e: {:02} i: {:05} {:%H:%M:%S} loss: {}'.format(e, itr, datetime.datetime.now(), print_loss_avg))
+                print('e: %d i: %d (%d%%) time: %s loss: %.4f' %
+                     (e, itr, itr / (iters_per_epoch*epochs) * 100,
+                      timeSince(start, itr / (iters_per_epoch*epochs)), print_loss_avg))
 
             itr += 1
 
-    torch.save(encoder.state_dict(), 'output/encoder.pth')
+        torch.save(encoder.state_dict(), save_dir + '/encoder_after_epoch_'+str(e)+'.pth')
+        for i, d in enumerate(decoders):
+            torch.save(d.state_dict(), save_dir + '/decoder' + str(i) + '_after_epoch_'+str(e)+'.pth')
+        torch.save(encoder_optimizer.state_dict(), save_dir + '/encoder_optimizer_after_epoch_'+str(e)+'.pth')
+        for i, d in enumerate(decoder_optimizers):
+            torch.save(d.state_dict(), save_dir + '/decoder_optimizer' + str(i) + '_after_epoch_'+str(e)+'.pth')
+        savePlot(save_dir+'/loss_curve_after_epoch_'+str(e)+'.png', losses, print_every)
+
+    torch.save(encoder.state_dict(), save_dir+'/final_encoder.pth')
     for i, d in enumerate(decoders):
-        torch.save(d.state_dict(), 'output/decoder'+str(i)+'.pth')
-    torch.save(encoder_optimizer.state_dict(), 'output/encoder_optimizer.pth')
+        torch.save(d.state_dict(), save_dir+'/final_decoder'+str(i)+'.pth')
+    torch.save(encoder_optimizer.state_dict(), save_dir+'/final_encoder_optimizer.pth')
     for i, d in enumerate(decoder_optimizers):
-        torch.save(d.state_dict(), 'output/decoder_optimizer' + str(i) + '.pth')
-    showPlot(losses)
+        torch.save(d.state_dict(), save_dir+'/final_decoder_optimizer' + str(i) + '.pth')
+    savePlot(save_dir+'/final_loss_curve.png', losses, print_every)
+
+
+def evaluate(input_tensor, num2word, encoder, decoder, max_length):
+    with torch.no_grad():
+        input_length = input_tensor.size()[0]
+        encoder_hidden = encoder.initHidden()
+
+        encoder_outputs = torch.zeros(max_length, encoder.hidden_size)
+
+        for ei in range(input_length):
+            encoder_output, encoder_hidden = encoder(input_tensor[ei],
+                                                     encoder_hidden)
+            encoder_outputs[ei] += encoder_output[0, 0]
+
+        decoder_input = torch.tensor([[SOS]])
+
+        decoder_hidden = encoder_hidden
+
+        decoded_words = []
+        decoder_attentions = torch.zeros(max_length, max_length)
+
+        for di in range(max_length):
+            decoder_output, decoder_hidden, decoder_attention = decoder(
+                decoder_input, decoder_hidden, encoder_outputs)
+            decoder_attentions[di] = decoder_attention.data
+            topv, topi = decoder_output.data.topk(1)
+            if topi.item() == EOS:
+                decoded_words.append('<EOS>')
+                break
+            else:
+                decoded_words.append(num2word[topi.item()])
+
+            decoder_input = topi.squeeze().detach()
+
+        return decoded_words, decoder_attentions[:di + 1]
+
+
+def test(num_authors, word2num, num2word, data, encoder, decoders, max_length):
+    encoder.eval()
+    for d in decoders:
+        d.eval()
+
+    for a, batch in minibatches(data, word2num, max_length=max_length):
+        b = (a + 1) % num_authors
+        input_tensor = torch.LongTensor(batch).view(-1, 1)
+        output, _ = evaluate(input_tensor, num2word, encoder, decoders[a], max_length)
+        print('\nOriginal (Author ' + str(a) + '):', ' '.join([num2word[w] for w in batch]))
+        print('Transferred (Author ' + str(b) + '):', ' '.join(output))
