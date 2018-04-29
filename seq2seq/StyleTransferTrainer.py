@@ -32,7 +32,8 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     decoder_hidden = encoder_hidden
 
     use_teacher_forcing = True
-    #if random.random() < teacher_forcing_ratio else False
+    if np.random.rand() < 0.5:
+        use_teacher_forcing = False
 
     if use_teacher_forcing:
         # Teacher forcing: Feed the target as the next input
@@ -63,7 +64,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
 
 
 def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_every=1000, learning_rate=1e-2,
-                save_dir='output'):
+                save_dir='output', checkpoint_interval=1):
     print('Setting up trainer... ', end='')
     encoder.train()
     for d in decoders:
@@ -97,18 +98,20 @@ def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_e
                 losses.append(print_loss_avg)
                 # print('e: {:02} i: {:05} {:%H:%M:%S} loss: {}'.format(e, itr, datetime.datetime.now(), print_loss_avg))
                 print('e: %d i: %d (%d%%) time: %s loss: %.4f' %
-                     (e, itr, itr / (iters_per_epoch*epochs) * 100,
-                      timeSince(start, itr / (iters_per_epoch*epochs)), print_loss_avg))
+                     (e, itr, (itr + iters_per_epoch*e) / (iters_per_epoch*epochs) * 100,
+                      timeSince(start, (itr + iters_per_epoch*e) / (iters_per_epoch*epochs)), print_loss_avg))
 
             itr += 1
 
-        torch.save(encoder.state_dict(), save_dir + '/encoder_after_epoch_'+str(e)+'.pth')
-        for i, d in enumerate(decoders):
-            torch.save(d.state_dict(), save_dir + '/decoder' + str(i) + '_after_epoch_'+str(e)+'.pth')
-        torch.save(encoder_optimizer.state_dict(), save_dir + '/encoder_optimizer_after_epoch_'+str(e)+'.pth')
-        for i, d in enumerate(decoder_optimizers):
-            torch.save(d.state_dict(), save_dir + '/decoder_optimizer' + str(i) + '_after_epoch_'+str(e)+'.pth')
-        savePlot(save_dir+'/loss_curve_after_epoch_'+str(e)+'.png', losses, print_every)
+        if (e + 1) % checkpoint_interval == 0:  # save checkpoint after every checkpoint_interval epochs
+            torch.save(encoder.state_dict(), save_dir + '/encoder_after_epoch_'+str(e)+'.pth')
+            for i, d in enumerate(decoders):
+                torch.save(d.state_dict(), save_dir + '/decoder' + str(i) + '_after_epoch_'+str(e)+'.pth')
+            torch.save(encoder_optimizer.state_dict(), save_dir + '/encoder_optimizer_after_epoch_'+str(e)+'.pth')
+            for i, d in enumerate(decoder_optimizers):
+                torch.save(d.state_dict(), save_dir + '/decoder_optimizer' + str(i) + '_after_epoch_'+str(e)+'.pth')
+            savePlot(save_dir+'/loss_curve_after_epoch_'+str(e)+'.png', losses, print_every)
+            np.save(save_dir+'/losses_after_epoch_'+str(e), np.array(losses))
 
     torch.save(encoder.state_dict(), save_dir+'/final_encoder.pth')
     for i, d in enumerate(decoders):
@@ -117,6 +120,7 @@ def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_e
     for i, d in enumerate(decoder_optimizers):
         torch.save(d.state_dict(), save_dir+'/final_decoder_optimizer' + str(i) + '.pth')
     savePlot(save_dir+'/final_loss_curve.png', losses, print_every)
+    np.save(save_dir + '/final_losses', losses)
 
 
 def evaluate(input_tensor, num2word, encoder, decoder, max_length):
@@ -154,7 +158,7 @@ def evaluate(input_tensor, num2word, encoder, decoder, max_length):
         return decoded_words, decoder_attentions[:di + 1]
 
 
-def test(num_authors, word2num, num2word, data, encoder, decoders, max_length):
+def test(num_authors, word2num, num2word, data, encoder, decoders, max_length, save_dir='output'):
     encoder.eval()
     for d in decoders:
         d.eval()
@@ -163,5 +167,11 @@ def test(num_authors, word2num, num2word, data, encoder, decoders, max_length):
         b = (a + 1) % num_authors
         input_tensor = torch.LongTensor(batch).view(-1, 1)
         output, _ = evaluate(input_tensor, num2word, encoder, decoders[a], max_length)
-        print('\nOriginal (Author ' + str(a) + '):', ' '.join([num2word[w] for w in batch]))
-        print('Transferred (Author ' + str(b) + '):', ' '.join(output))
+
+        original = '\nOriginal (Author ' + str(a) + '):' + ' '.join([num2word[w] for w in batch])
+        print(original)
+        print(original, file=open(save_dir+'/test_predictions.txt', 'a+'))
+
+        transferred = 'Transferred (Author ' + str(b) + '):' + ' '.join(output)
+        print(transferred)
+        print(transferred, file=open(save_dir+'/test_predictions.txt', 'a+'))

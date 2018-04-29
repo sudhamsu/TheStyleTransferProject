@@ -15,7 +15,8 @@ SENTS_PER_AUTHOR = 3500  # author 2 below has only 3500+epsilon 20-length senten
 TEST_SENTS_PER_AUTHOR = 10
 PRINT_EVERY = 20
 LR = 1e-2
-EPOCHS = 5
+EPOCHS = 7
+CHECKPOINT_INTERVAL = 2  # number of epochs after which to save checkpoint
 
 
 # GENERATE SAVE DIRECTORY PATH
@@ -50,7 +51,8 @@ encoder = StyleTransferModel.EncoderRNN(len(word2num), HIDDEN_SIZE)
 decoders = [StyleTransferModel.AttnDecoderRNN(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
 
 StyleTransferTrainer.train_iters(word2num, data, encoder, decoders, MAX_LENGTH,
-                                 epochs=EPOCHS, learning_rate=LR, print_every=PRINT_EVERY, save_dir=SAVE_DIR)
+                                 epochs=EPOCHS, learning_rate=LR,
+                                 print_every=PRINT_EVERY, save_dir=SAVE_DIR, checkpoint_interval=CHECKPOINT_INTERVAL)
 
 
 test_data = [(a, sent)
@@ -66,4 +68,4 @@ encoder.load_state_dict(torch.load(LOAD_DIR+'/final_encoder.pth'))
 for i, d in enumerate(decoders):
     d.load_state_dict(torch.load(LOAD_DIR+'/final_decoder'+str(i)+'.pth'))
 
-StyleTransferTrainer.test(len(authors), word2num, num2word, test_data, encoder, decoders, MAX_LENGTH)
+StyleTransferTrainer.test(len(authors), word2num, num2word, test_data, encoder, decoders, MAX_LENGTH, save_dir=SAVE_DIR)
