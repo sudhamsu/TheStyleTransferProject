@@ -5,6 +5,7 @@ import StyleTransferTrainer
 import os
 import torch
 import datetime
+import pickle
 
 
 MAX_LENGTH = 20
@@ -39,10 +40,13 @@ if not os.path.exists('vocab.txt'):
 
 word2num, num2word = load_vocab()
 
-data = [(a, sent)
-        for a, author in enumerate(authors)
-        for sent in np.random.choice(document_tokenize(author, max_length=MAX_LENGTH, tokenize_words=True),
-                                     SENTS_PER_AUTHOR, replace=False)]
+
+# TRAINING STYLE TRANSFER MODEL
+# data = [(a, sent)
+#         for a, author in enumerate(authors)
+#         for sent in np.random.choice(document_tokenize(author, max_length=MAX_LENGTH, tokenize_words=True),
+#                                      SENTS_PER_AUTHOR, replace=False)]
+data = pickle.load(open('data/train.pkl', 'rb'))
 print('Done!\nTotal number of sentences:', len(data))
 # data = [document_tokenize(author, tokenize_words=True) for author in authors]
 # dlo = DataLoader(data, word2num, BATCH_SIZE, MAX_LENGTH)
@@ -55,11 +59,14 @@ StyleTransferTrainer.train_iters(word2num, data, encoder, decoders, MAX_LENGTH,
                                  print_every=PRINT_EVERY, save_dir=SAVE_DIR, checkpoint_interval=CHECKPOINT_INTERVAL)
 
 
-test_data = [(a, sent)
-             for a, author in enumerate(authors)
-             for sent in np.random.choice(document_tokenize(author, max_length=MAX_LENGTH, tokenize_words=True),
-                                          TEST_SENTS_PER_AUTHOR, replace=False)]
+# TESTING STYLE TRANSFER MODEL
 # test_data = data
+# test_data = [(a, sent)
+#              for a, author in enumerate(authors)
+#              for sent in np.random.choice(document_tokenize(author, max_length=MAX_LENGTH, tokenize_words=True),
+#                                           TEST_SENTS_PER_AUTHOR, replace=False)]
+test_data = pickle.load(open('data/test.pkl', 'rb'))
+test_data = np.random.choice(test_data, 20, replace=False)
 
 encoder = StyleTransferModel.EncoderRNN(len(word2num), HIDDEN_SIZE)
 decoders = [StyleTransferModel.AttnDecoderRNN(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]

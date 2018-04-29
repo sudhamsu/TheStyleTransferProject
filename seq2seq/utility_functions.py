@@ -116,7 +116,7 @@ def timeSince(since, percent):
     s = now - since
     es = s / (percent)
     rs = es - s
-    return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
+    return '%s (-%s)' % (asMinutes(s), asMinutes(rs))
 
 
 class DataLoader(object):
