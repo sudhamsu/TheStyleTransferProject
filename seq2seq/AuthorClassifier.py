@@ -67,7 +67,10 @@ def train(data, word2num, num_authors, vocab_size, embedding_dim=64, hidden_dim=
                     uf.timeSince(start, (i+1 + iters_per_epoch * e) / (iters_per_epoch * epochs)),
                     str(e + 1), str(i + 1), print_loss_avg))
 
-    uf.save_plot(save_dir + '/loss_curve.png', losses, print_every)
+    torch.save(model.state_dict(), save_dir + '/final_model.pth')
+    torch.save(optimizer.state_dict(), save_dir + '/final_optimizer.pth')
+    uf.save_plot(save_dir + '/final_loss_curve.png', losses, print_every)
+    np.save(save_dir + '/final_losses', losses)
 
     return model
 
