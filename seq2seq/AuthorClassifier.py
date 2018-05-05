@@ -62,11 +62,12 @@ def train(data, word2num, num_authors, vocab_size, embedding_dim=64, hidden_dim=
                 print_loss_avg = total_loss_print_every / print_every
                 total_loss_print_every = 0
                 losses.append(print_loss_avg)
-                print('e: %d i: %d (%d%%) time: %s loss: %.4f' %
-                      (e+1, i+1, (i+1 + iters_per_epoch * e) / (iters_per_epoch * epochs) * 100,
-                       uf.timeSince(start, (i+1 + iters_per_epoch * e) / (iters_per_epoch * epochs)), print_loss_avg))
+                print('{:3}%  t: {:21}  e: {:3}  i: {:4}  loss: {:.8}'.format(
+                    int((i+1 + iters_per_epoch * e) / (iters_per_epoch * epochs) * 100),
+                    uf.timeSince(start, (i+1 + iters_per_epoch * e) / (iters_per_epoch * epochs)),
+                    str(e + 1), str(i + 1), print_loss_avg))
 
-    uf.savePlot(save_dir+'/loss_curve.png', losses, print_every)
+    uf.save_plot(save_dir + '/loss_curve.png', losses, print_every)
 
     return model
 

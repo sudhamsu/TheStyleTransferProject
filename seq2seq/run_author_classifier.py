@@ -6,6 +6,9 @@ import os
 import datetime
 
 
+# TODO: create test split and code...
+
+
 EMBEDDING_DIM = 256
 HIDDEN_DIM = 256
 MAX_LENGTH=20

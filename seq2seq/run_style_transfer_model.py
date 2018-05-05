@@ -51,8 +51,9 @@ print('Done!\nTotal number of sentences:', len(data))
 # data = [document_tokenize(author, tokenize_words=True) for author in authors]
 # dlo = DataLoader(data, word2num, BATCH_SIZE, MAX_LENGTH)
 
-encoder = StyleTransferModel.EncoderRNN(len(word2num), HIDDEN_SIZE)
-decoders = [StyleTransferModel.AttnDecoderRNN(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
+encoder = StyleTransferModel.Encoder(len(word2num), HIDDEN_SIZE)
+# decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
+decoders = [StyleTransferModel.Decoder(HIDDEN_SIZE, len(word2num)) for _ in authors]
 
 StyleTransferTrainer.train_iters(word2num, data, encoder, decoders, MAX_LENGTH,
                                  epochs=EPOCHS, learning_rate=LR,
@@ -66,10 +67,11 @@ StyleTransferTrainer.train_iters(word2num, data, encoder, decoders, MAX_LENGTH,
 #              for sent in np.random.choice(document_tokenize(author, max_length=MAX_LENGTH, tokenize_words=True),
 #                                           TEST_SENTS_PER_AUTHOR, replace=False)]
 test_data = pickle.load(open('data/test.pkl', 'rb'))
-test_data = np.random.choice(test_data, 20, replace=False)
+test_data = np.random.choice(test_data, len(authors)*TEST_SENTS_PER_AUTHOR, replace=False)
 
-encoder = StyleTransferModel.EncoderRNN(len(word2num), HIDDEN_SIZE)
-decoders = [StyleTransferModel.AttnDecoderRNN(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
+encoder = StyleTransferModel.Encoder(len(word2num), HIDDEN_SIZE)
+# decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
+decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num)) for _ in authors]
 
 encoder.load_state_dict(torch.load(LOAD_DIR+'/final_encoder.pth'))
 for i, d in enumerate(decoders):
