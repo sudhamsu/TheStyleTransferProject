@@ -9,21 +9,18 @@ import math
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 
 
 VOCAB_PATH = 'vocab.txt'
+EOS = 0
+SOS = 1
 
 
-def savePlot(filepath, points, print_every):
-    plt.figure()
-    fig, ax = plt.subplots()
-    # this locator puts ticks at regular intervals
-    # loc = ticker.MultipleLocator(base=0.2)
-    # ax.yaxis.set_major_locator(loc)
+def save_plot(filepath, points, print_every):
+    plt.plot(points)
     plt.xlabel('Iterations (x'+str(print_every)+')')
     plt.ylabel('Loss')
-    plt.plot(points)
+    plt.ylim(ymin=0)
     plt.tight_layout()
     plt.savefig(filepath)
     plt.close()
@@ -48,7 +45,6 @@ def create_vocab(path, min_count=1):
                         vocab[word] += 1
     final_vocab = [word for word, count in vocab.items() if count >= min_count]
     final_vocab += ['UNK']
-    print('UNK' in final_vocab)
     print("Total vocab count, including UNK: {}".format(len(final_vocab)))
     final_vocab = '\n'.join(final_vocab)
     with open(VOCAB_PATH, 'w') as f:
@@ -59,7 +55,7 @@ def create_vocab(path, min_count=1):
 # load vocab - read the file
 # return wordToNum and numToWord
 def load_vocab():
-    word2num = {"PAD": 0, "SOS": 1}
+    word2num = {"<EOS>": EOS, "<SOS>": SOS}  # 0 and 1
     with open(VOCAB_PATH, 'r') as f:
         words = f.read().split('\n')
     j = 2
@@ -75,24 +71,14 @@ def load_vocab():
 # since the model is an autoencoder, output will be identical to input
 # will need wordToNum
 def convert_to_vector(batch, word2num):
-    """
-    :param batch: list of lists of words that form a single batch
-    :return: list of lists of words, with words replaced with their ids
-    """
-    vectors = [word2num[word] if word in word2num else word2num['UNK'] for word in batch]
-    return vectors
+    vector = [word2num[word] if word in word2num else word2num['UNK'] for word in batch]
+    vector.append(EOS)
+    return vector
 
 
 # function for selecting batch
 # create a batch iteratively and convert sentences into index vectors (call the desired function)
 def minibatches(data, word2num, max_length=10):
-    """
-    :param data: The input data that has to be broken into batches
-    :param batch_size: desired batch size
-    :param word2num: dictionary mapping words to their indices
-    :param max_length
-    :return: encoder input, decoder input and decoder output
-    """
     for a, line in data:
         batch = convert_to_vector(line, word2num)[:max_length]
         yield a, batch
@@ -116,7 +102,7 @@ def timeSince(since, percent):
     s = now - since
     es = s / (percent)
     rs = es - s
-    return '%s (- %s)' % (asMinutes(s), asMinutes(rs))
+    return '%s (-%s)' % (asMinutes(s), asMinutes(rs))
 
 
 class DataLoader(object):
