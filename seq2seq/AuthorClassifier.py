@@ -72,10 +72,21 @@ def train(data, word2num, num_authors, vocab_size, embedding_dim=64, hidden_dim=
     return model
 
 
-def test(model, data, word2num, save_dir='output'):
+def test(model, data, word2num):
+    predictions = predict(model, data, word2num)
+    count_correct_preds = 0
+
+    for i in range(len(data)):
+        count_correct_preds += (predictions[i] == data[i][0])
+
+    test_acc = count_correct_preds / len(data)
+    print('Test accuracy: {:.4f}%'.format(test_acc*100))
+
+
+def predict(model, data, word2num):
     model.eval()
     softmax = nn.Softmax(dim=1)
-    count_correct_preds = 0
+    predictions = []
 
     for i in range(len(data)):
         model.zero_grad()
@@ -87,7 +98,6 @@ def test(model, data, word2num, save_dir='output'):
         output = softmax(output)
         _, pred = torch.max(output, 1)
 
-        count_correct_preds += (pred.item() == a)
+        predictions.append(pred.item())
 
-    test_acc = count_correct_preds / len(data)
-    print('Test accuracy: {:.4f}%'.format(test_acc*100))
+    return predictions
