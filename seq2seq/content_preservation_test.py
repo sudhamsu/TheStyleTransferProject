@@ -1,6 +1,4 @@
 import os
-from gensim.scripts.glove2word2vec import glove2word2vec
-from gensim.models import KeyedVectors
 import pickle
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
