@@ -78,7 +78,7 @@ def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_e
     print('Done!\nTraining...')
     start = time.time()
     for e in range(epochs):
-        itr = 1
+        itr = 0
         np.random.shuffle(data)
         for a, batch in uf.minibatches(data, word2num, max_length=max_length):
             input_tensor = torch.LongTensor(batch).view(-1, 1)
@@ -126,8 +126,7 @@ def evaluate(input_tensor, num2word, encoder, decoder, max_length):
         encoder_outputs = torch.zeros(max_length, encoder.hidden_size)
 
         for e in range(input_length):
-            encoder_output, encoder_hidden = encoder(input_tensor[e],
-                                                     encoder_hidden)
+            encoder_output, encoder_hidden = encoder(input_tensor[e], encoder_hidden)
             encoder_outputs[e] += encoder_output[0, 0]
 
         decoder_input = torch.tensor([[SOS]])
@@ -137,10 +136,10 @@ def evaluate(input_tensor, num2word, encoder, decoder, max_length):
         decoded_words = []
 
         for d in range(max_length):
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_outputs)
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden) #, encoder_outputs)
             topv, topi = decoder_output.data.topk(1)
             if topi.item() == EOS:
-                decoded_words.append('<EOS>')
+                decoded_words.append(num2word[EOS])
                 break
             else:
                 decoded_words.append(num2word[topi.item()])

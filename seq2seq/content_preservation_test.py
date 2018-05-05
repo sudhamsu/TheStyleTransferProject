@@ -40,8 +40,6 @@ def extract_embeddings():
     for line in reader:
         words = line.split()
         if len(words) > 0:
-            if words[0] == '.':
-                print(line)
             vector = [float(num) for num in words[len(words)-EMBED_SIZE:]]
             embeddings[' '.join(words[0:len(words)-EMBED_SIZE])] = vector
 
