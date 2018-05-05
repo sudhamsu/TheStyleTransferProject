@@ -55,8 +55,8 @@ print('Done!\nTotal number of sentences:', len(data))
 # dlo = DataLoader(data, word2num, BATCH_SIZE, MAX_LENGTH)
 
 encoder = StyleTransferModel.Encoder(len(word2num), HIDDEN_SIZE)
-# decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
-decoders = [StyleTransferModel.Decoder(HIDDEN_SIZE, len(word2num)) for _ in authors]
+decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
+# decoders = [StyleTransferModel.Decoder(HIDDEN_SIZE, len(word2num)) for _ in authors]
 
 StyleTransferTrainer.train_iters(word2num, data, encoder, decoders, MAX_LENGTH,
                                  epochs=EPOCHS, learning_rate=LR,
@@ -79,8 +79,8 @@ for i in chosen_indices:
 del loaded_test_data
 
 encoder = StyleTransferModel.Encoder(len(word2num), HIDDEN_SIZE)
-# decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
-decoders = [StyleTransferModel.Decoder(HIDDEN_SIZE, len(word2num)) for _ in authors]
+decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
+# decoders = [StyleTransferModel.Decoder(HIDDEN_SIZE, len(word2num)) for _ in authors]
 
 # encoder.load_state_dict(torch.load(LOAD_DIR+'/encoder_after_epoch_3.pth'))
 # for i, d in enumerate(decoders):

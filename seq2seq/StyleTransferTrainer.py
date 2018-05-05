@@ -37,12 +37,12 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
 
     if use_teacher_forcing:
         for d in range(target_length):
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden) #, encoder_outputs)
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_outputs)
             loss += loss_function(decoder_output, target_tensor[d])
             decoder_input = target_tensor[d]
     else:
         for d in range(target_length):
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden) #, encoder_outputs)
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_outputs)
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()
             loss += loss_function(decoder_output, target_tensor[d])
@@ -136,7 +136,7 @@ def evaluate(input_tensor, num2word, encoder, decoder, max_length):
         decoded_words = []
 
         for d in range(max_length):
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden) #, encoder_outputs)
+            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden, encoder_outputs)
             topv, topi = decoder_output.data.topk(1)
             if topi.item() == EOS:
                 decoded_words.append(num2word[EOS])
