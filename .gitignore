@@ -1,4 +1,5 @@
 ./.idea
 .idea
 *.pyc
+glove.840B.300d.txt
 sftp-config.json

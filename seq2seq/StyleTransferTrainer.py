@@ -163,15 +163,20 @@ def test(num_authors, word2num, num2word, data, encoder, decoders, max_length, s
     for d in decoders:
         d.eval()
 
+    source_prediction_pairs = []
     for a, batch in minibatches(data, word2num, max_length=max_length):
         b = (a + 1) % num_authors
         input_tensor = torch.LongTensor(batch).view(-1, 1)
         output, _ = evaluate(input_tensor, num2word, encoder, decoders[a], max_length)
 
-        original = '\nOriginal (Author ' + str(a) + '):' + ' '.join([num2word[w] for w in batch])
-        print(original)
-        print(original, file=open(save_dir+'/test_predictions.txt', 'a+'))
+        original = ' '.join([num2word[w] for w in batch])
+        original_out = '\nOriginal (Author ' + str(a) + '):' + original
+        print(original_out)
+        print(original_out, file=open(save_dir+'/test_predictions.txt', 'a+'))
 
-        transferred = 'Transferred (Author ' + str(b) + '):' + ' '.join(output)
-        print(transferred)
-        print(transferred, file=open(save_dir+'/test_predictions.txt', 'a+'))
+        transferred = ' '.join(output)
+        transferred_out = 'Transferred (Author ' + str(b) + '):' + transferred
+        print(transferred_out)
+        print(transferred_out, file=open(save_dir+'/test_predictions.txt', 'a+'))
+        source_prediction_pairs.append((original, transferred))
+    return source_prediction_pairs
