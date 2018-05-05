@@ -71,8 +71,12 @@ StyleTransferTrainer.train_iters(word2num, data, encoder, decoders, MAX_LENGTH,
 #                                           TEST_SENTS_PER_AUTHOR, replace=False)]
 
 # LOAD TEST SET FROM PICKLED FILE
-test_data = pickle.load(open('data/test.pkl', 'rb'))
-test_data = np.random.choice(test_data, len(authors)*TEST_SENTS_PER_AUTHOR, replace=False)
+loaded_test_data = pickle.load(open('data/test.pkl', 'rb'))
+chosen_indices = np.random.choice(np.arange(len(loaded_test_data)), len(authors)*TEST_SENTS_PER_AUTHOR, replace=False).tolist()
+test_data = []
+for i in chosen_indices:
+    test_data.append(loaded_test_data[i])
+del loaded_test_data
 
 encoder = StyleTransferModel.Encoder(len(word2num), HIDDEN_SIZE)
 # decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
@@ -82,16 +86,17 @@ decoders = [StyleTransferModel.Decoder(HIDDEN_SIZE, len(word2num)) for _ in auth
 # for i, d in enumerate(decoders):
 #     d.load_state_dict(torch.load(LOAD_DIR+'/decoder'+str(i)+'_after_epoch_3.pth'))
 
-predictions = StyleTransferTrainer.test(len(authors), word2num, num2word, test_data, encoder, decoders, MAX_LENGTH, save_dir=LOAD_DIR)
+predictions = StyleTransferTrainer.test(word2num, num2word, test_data, encoder, decoders, MAX_LENGTH)
 cosine_similarity_vector = compute_content_preservation(predictions)
 for i in range(len(predictions)):
     a = test_data[i][0]
     b = (a + 1) % len(authors)
-    print("\nOriginal (Author {}): {}".format(a, predictions[i][0]))
-    print("Transferred (Author {}): {}".format(b, predictions[i][1]))
-    print("Cosine Similarity: {}".format(cosine_similarity_vector[i]))
+    print_string = '\n' + 'Original (Author {}): {}'.format(a, predictions[i][0])
+    print_string += '\n' + 'Transferred (Author {}): {}'.format(b, predictions[i][1])
+    print_string += '\n' + 'Cosine Similarity: {}'.format(cosine_similarity_vector[i])
+    print(print_string)
+    print(print_string, file=open(LOAD_DIR + '/test_predictions.txt', 'a+'))
 
-#print("Cosine Similarity of all examples: {}".format(cosine_similarity_vector))
 with open(LOAD_DIR + "/cosine_similarity_with_tf.pkl", 'wb') as f:
     pickle.dump(cosine_similarity_vector, f)
 

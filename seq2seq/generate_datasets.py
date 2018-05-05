@@ -5,11 +5,11 @@ import os
 
 
 MAX_LENGTH = 20
-TRAIN_SENTS_PER_STYLE = 3300#5000
-TEST_SENTS_PER_STYLE = 200#1000
+TRAIN_SENTS_PER_STYLE = 5000
+TEST_SENTS_PER_STYLE = 1000
 
-filename_prepend = 'humor_horror_'
-styles = ["../Gutenberg/Fantasy/Howard_Pyle.txt", "../Gutenberg/Fantasy/William_Morris.txt"]
+filename_prepend = 'horror_humor_'
+styles = ["../Gutenberg/Horror/horror.txt", "../Gutenberg/Humor/humor.txt"]
 sents_per_style = TRAIN_SENTS_PER_STYLE + TEST_SENTS_PER_STYLE
 data = [(a, sent)
         for a, style in enumerate(styles)
@@ -29,24 +29,32 @@ save_dir = 'data'
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 pickle.dump(train_data, open(save_dir+'/'+filename_prepend+'train.pkl', 'wb'))
+pickle.dump(test_data, open(save_dir+'/'+filename_prepend+'test.pkl', 'wb'))
 
+
+
+# build human evaluation test data
 np.random.shuffle(test_data)
 final_test_data = []
 
 # test manually if you can guess the style
 # keep the line in the set if you can guess correctly
 # else delete it
+counters = [0, 0]
 for a, line in test_data:
     print('\n'+' '.join(line))
     guess = input('Guess: ')
     if guess == str(a):
         print('Correct! Saving line to test set.')
         final_test_data.append((a, line))
-        print('Test set size:', len(final_test_data))
+        counters[a] += 1
+        print('Test set counts:', counters)
+    elif guess == 'skip':
+        print('Skipping... It was ', a)
     elif guess == 'stop':
         print('Stopping, and saving test set built so far.')
         break
     else:
         print('Incorrect! Moving on...')
 
-pickle.dump(final_test_data, open(save_dir+'/'+filename_prepend+'test.pkl', 'wb'))
+pickle.dump(final_test_data, open(save_dir+'/'+filename_prepend+'test_human.pkl', 'wb'))
