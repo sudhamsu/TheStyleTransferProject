@@ -87,7 +87,7 @@ def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_e
                          encoder_optimizer, decoder_optimizers[a], criterion, max_length)
             loss_total += loss
 
-            if itr % print_every == 0:
+            if (itr + 1) % print_every == 0:
                 print_loss_avg = loss_total / print_every
                 loss_total = 0
                 losses.append(print_loss_avg)
