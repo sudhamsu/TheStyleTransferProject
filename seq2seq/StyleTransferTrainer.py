@@ -32,8 +32,8 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     decoder_hidden = encoder_hidden
 
     use_teacher_forcing = True
-    if np.random.rand() < 0.5:
-        use_teacher_forcing = False
+    #if np.random.rand() < 0.5:
+    #    use_teacher_forcing = False
 
     if use_teacher_forcing:
         for d in range(target_length):

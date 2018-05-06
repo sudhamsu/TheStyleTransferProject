@@ -13,7 +13,7 @@ MAX_LENGTH = 20
 HIDDEN_SIZE = 256
 BATCH_SIZE = 1  # TODO: current code implementation is valid ONLY for batch size 1
 MIN_COUNT = 5
-SENTS_PER_AUTHOR = 3500  # author 2 below has only 3500+epsilon 20-length sentences
+SENTS_PER_AUTHOR = 3300  # author 2 below has only 3500+epsilon 20-length sentences
 TEST_SENTS_PER_AUTHOR = 200
 PRINT_EVERY = 20
 LR = 1e-2
@@ -88,15 +88,23 @@ decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_
 
 predictions = StyleTransferTrainer.test(word2num, num2word, test_data, encoder, decoders, MAX_LENGTH)
 cosine_similarity_vector = compute_content_preservation(predictions)
+
+# TODO: always make sure to change this description when you change the attention or teacher enforcing values.
+about = "The list of authors used: {}\nAttention decoder with complete teacher enforcing\n"
+print(about, file=open(LOAD_DIR + '/test_predictions.txt', 'a+'))
+target_predictions = []
 for i in range(len(predictions)):
-    a = test_data[i][0]
-    b = (a + 1) % len(authors)
+    a = test_data[i][0]                 # index of input author
+    b = (a + 1) % len(authors)          # index of target author
     print_string = '\n' + 'Original (Author {}): {}'.format(a, predictions[i][0])
     print_string += '\n' + 'Transferred (Author {}): {}'.format(b, predictions[i][1])
     print_string += '\n' + 'Cosine Similarity: {}'.format(cosine_similarity_vector[i])
     print(print_string)
     print(print_string, file=open(LOAD_DIR + '/test_predictions.txt', 'a+'))
+    target_predictions.append((b, predictions[i][1]))
 
 with open(LOAD_DIR + "/cosine_similarity_with_tf.pkl", 'wb') as f:
     pickle.dump(cosine_similarity_vector, f)
 
+with open(LOAD_DIR + "/target_predictions.pkl", "wb") as f:
+    pickle.dump(target_predictions, f)
