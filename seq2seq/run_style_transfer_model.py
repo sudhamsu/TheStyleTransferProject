@@ -7,6 +7,7 @@ import os
 import torch
 import datetime
 import pickle
+import sys
 
 
 MAX_LENGTH = 20
@@ -32,7 +33,8 @@ if not os.path.exists(SAVE_DIR):
 
 LOAD_DIR = SAVE_DIR
 
-authors = ["../Gutenberg/Fantasy/Howard_Pyle.txt", "../Gutenberg/Fantasy/William_Morris.txt"]
+# authors = ["../Gutenberg/Fantasy/Howard_Pyle.txt", "../Gutenberg/Fantasy/William_Morris.txt"]
+authors = ["../Gutenberg/Fantasy/William_Morris.txt", "../Gutenberg/Fantasy/Lyman_Frank_Baum.txt"]
 
 print('Loading data... ', end='')
 
@@ -48,9 +50,11 @@ word2num, num2word = load_vocab()
 #                                      SENTS_PER_AUTHOR, replace=False)]
 
 # LOAD TRAINING SET FROM PICKLED FILE
-data = pickle.load(open('data/train.pkl', 'rb'))
+# data = pickle.load(open('data/fantasy_hp_wm_train.pkl', 'rb'))
+data = pickle.load(open('data/fantasy_wm_lfb_train.pkl', 'rb'))
 
 print('Done!\nTotal number of sentences:', len(data))
+sys.stdout.flush()
 # data = [document_tokenize(author, tokenize_words=True) for author in authors]
 # dlo = DataLoader(data, word2num, BATCH_SIZE, MAX_LENGTH)
 
@@ -71,7 +75,8 @@ StyleTransferTrainer.train_iters(word2num, data, encoder, decoders, MAX_LENGTH,
 #                                           TEST_SENTS_PER_AUTHOR, replace=False)]
 
 # LOAD TEST SET FROM PICKLED FILE
-loaded_test_data = pickle.load(open('data/test.pkl', 'rb'))
+# loaded_test_data = pickle.load(open('data/fantasy_hp_wm_test.pkl', 'rb'))
+loaded_test_data = pickle.load(open('data/fantasy_wm_lfb_test.pkl', 'rb'))
 chosen_indices = np.random.choice(np.arange(len(loaded_test_data)), len(authors)*TEST_SENTS_PER_AUTHOR, replace=False).tolist()
 test_data = []
 for i in chosen_indices:
@@ -92,6 +97,7 @@ cosine_similarity_vector = compute_content_preservation(predictions)
 # TODO: always make sure to change this description when you change the attention or teacher enforcing values.
 about = "The list of authors used: {}\nAttention decoder with complete teacher enforcing\n"
 print(about, file=open(LOAD_DIR + '/test_predictions.txt', 'a+'))
+sys.stdout.flush()
 target_predictions = []
 for i in range(len(predictions)):
     a = test_data[i][0]                 # index of input author
@@ -101,6 +107,7 @@ for i in range(len(predictions)):
     print_string += '\n' + 'Cosine Similarity: {}'.format(cosine_similarity_vector[i])
     print(print_string)
     print(print_string, file=open(LOAD_DIR + '/test_predictions.txt', 'a+'))
+    sys.stdout.flush()
     target_predictions.append((b, predictions[i][1]))
 
 with open(LOAD_DIR + "/cosine_similarity_with_tf.pkl", 'wb') as f:

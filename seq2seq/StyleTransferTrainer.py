@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch import optim
 import numpy as np
 import time
+import sys
 
 
 EOS = 0
@@ -95,6 +96,7 @@ def train_iters(word2num, data, encoder, decoders, max_length, epochs=5, print_e
                     int((itr + 1 + iters_per_epoch * e) / (iters_per_epoch * epochs) * 100),
                     uf.timeSince(start, (itr + 1 + iters_per_epoch * e) / (iters_per_epoch * epochs)),
                     str(e + 1), str(itr + 1), print_loss_avg))
+                sys.stdout.flush()
 
             itr += 1
 
