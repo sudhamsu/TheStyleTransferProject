@@ -5,11 +5,11 @@ import os
 
 
 MAX_LENGTH = 20
-TRAIN_SENTS_PER_STYLE = 5000
-TEST_SENTS_PER_STYLE = 1000
+TRAIN_SENTS_PER_STYLE = 3300
+TEST_SENTS_PER_STYLE = 200
 
-filename_prepend = 'horror_humor_'
-styles = ["../Gutenberg/Horror/horror.txt", "../Gutenberg/Humor/humor.txt"]
+filename_prepend = 'fantasy_wm_lfb_'
+styles = ["../Gutenberg/Fantasy/William_Morris.txt", "../Gutenberg/Fantasy/Lyman_Frank_Baum.txt"]
 sents_per_style = TRAIN_SENTS_PER_STYLE + TEST_SENTS_PER_STYLE
 data = [(a, sent)
         for a, style in enumerate(styles)
@@ -32,8 +32,9 @@ pickle.dump(train_data, open(save_dir+'/'+filename_prepend+'train.pkl', 'wb'))
 pickle.dump(test_data, open(save_dir+'/'+filename_prepend+'test.pkl', 'wb'))
 
 
-
 # build human evaluation test data
+# TODO: modify the code so it picks the current test data and allows us to cherry-pick samples from that
+# test rather than creating a new test data
 np.random.shuffle(test_data)
 final_test_data = []
 
