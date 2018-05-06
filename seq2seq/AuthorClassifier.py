@@ -3,6 +3,7 @@ import torch.nn as nn
 import numpy as np
 import utility_functions as uf
 import time
+import sys
 
 
 # TODO NOTE: this code is valid only for batch size 1, other sizes would need padding
@@ -45,18 +46,18 @@ def train(data, word2num, num_authors, vocab_size, embedding_dim=64, hidden_dim=
         np.random.shuffle(data)
         total_loss_print_every = 0
         for i in range(iters_per_epoch):
-            model.zero_grad()
             model.lstm_hidden_state = model.init_lstm_hidden_state()
+
+            optimizer.zero_grad()
 
             a, line = data[i]
             line = torch.autograd.Variable(torch.LongTensor([uf.convert_to_vector(line, word2num)]))
             label = torch.autograd.Variable(torch.FloatTensor([[1 if i==a else 0 for i in range(num_authors)]]))
             output = model(line)
             loss = loss_function(output, label)
+            total_loss_print_every += loss.item()
             loss.backward()
             optimizer.step()
-
-            total_loss_print_every += loss.item()
 
             if (i+1) % print_every == 0:
                 print_loss_avg = total_loss_print_every / print_every
@@ -66,6 +67,7 @@ def train(data, word2num, num_authors, vocab_size, embedding_dim=64, hidden_dim=
                     int((i+1 + iters_per_epoch * e) / (iters_per_epoch * epochs) * 100),
                     uf.timeSince(start, (i+1 + iters_per_epoch * e) / (iters_per_epoch * epochs)),
                     str(e + 1), str(i + 1), print_loss_avg))
+                sys.stdout.flush()
 
     torch.save(model.state_dict(), save_dir + '/final_model.pth')
     torch.save(optimizer.state_dict(), save_dir + '/final_optimizer.pth')
@@ -84,6 +86,7 @@ def test(model, data, word2num):
 
     test_acc = count_correct_preds / len(data)
     print('Test accuracy: {:.4f}%'.format(test_acc*100))
+    sys.stdout.flush()
 
 
 def predict(model, data, word2num):

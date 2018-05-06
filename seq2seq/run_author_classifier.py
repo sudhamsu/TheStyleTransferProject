@@ -5,7 +5,10 @@ import datautils as du
 import os
 import datetime
 import pickle
+import sys
+import torch
 
+torch.set_flush_denormal(True)
 
 EMBEDDING_DIM = 256
 HIDDEN_DIM = 256
@@ -26,7 +29,8 @@ if not os.path.exists(SAVE_DIR):
 LOAD_DIR = SAVE_DIR  # TODO
 
 
-authors = ["../Gutenberg/Fantasy/Howard_Pyle.txt", "../Gutenberg/Fantasy/William_Morris.txt"]
+# authors = ["../Gutenberg/Fantasy/Howard_Pyle.txt", "../Gutenberg/Fantasy/William_Morris.txt"]
+authors = ["../Gutenberg/Fantasy/William_Morris.txt", "../Gutenberg/Fantasy/Lyman_Frank_Baum.txt"]
 
 print('Loading data... ', end='')
 word2num, num2word = uf.load_vocab()
@@ -35,7 +39,7 @@ word2num, num2word = uf.load_vocab()
 #         for a, author in enumerate(authors)
 #         for sent in np.random.choice(du.document_tokenize(author, max_length=MAX_LENGTH, tokenize_words=True),
 #                                      SENTS_PER_AUTHOR, replace=False)]
-data = pickle.load(open('data/train.pkl', 'rb'))
+data = pickle.load(open('data/fantasy_wm_lfb_train.pkl', 'rb'))
 print('Done!\nTotal number of sentences:', len(data))
 
 model = ac.train(data, word2num, len(authors), len(word2num),
@@ -44,7 +48,7 @@ model = ac.train(data, word2num, len(authors), len(word2num),
                  print_every=PRINT_EVERY, save_dir=SAVE_DIR)
 
 # test_data = data
-test_data = pickle.load(open('data/test.pkl', 'rb'))
+test_data = pickle.load(open('data/fantasy_wm_lfb_test.pkl', 'rb'))
 ac.test(model, test_data, word2num)
 
 # following meant for "translated" lines
@@ -59,3 +63,4 @@ for i in range(10):
     print('\n' + ' '.join(to_predict_data[i][1]))
     print('Truth    :', to_predict_data[i][0])
     print('Predicted:', predictions[i])
+sys.stdout.flush()
