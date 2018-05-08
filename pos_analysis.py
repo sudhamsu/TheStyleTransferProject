@@ -94,12 +94,14 @@ def plot_per_genre(tags_per_genre):
 def plot_per_author(tags_per_author):
     for g in genres:
         print(g)
-        plt.figure()
         colors = ['b','g','m','c','k']
+        total = np.zeros(len(tags))
+        plt.figure()
         for i, a in enumerate(tags_per_author[g].keys()):
             tag_distribution = np.array(tags_per_author[g][a])
             total_count = sum(tag_distribution)
             tag_probability = np.divide(tag_distribution, total_count)
+            total += tag_probability
             plt.plot(np.arange(len(tags)), tag_probability, c=colors[i], label=a)
         plt.legend()
         plt.xlabel('POS Tags')
@@ -107,6 +109,20 @@ def plot_per_author(tags_per_author):
         plt.xticks(np.arange(len(tags)), [t.lower() for t in tags], rotation='vertical')
         plt.tight_layout()
         plt.savefig('tags_per_author_{}.png'.format(g))
+
+        plt.figure()
+        avg = total / len(tags_per_author[g].keys())
+        for i, a in enumerate(tags_per_author[g].keys()):
+            tag_distribution = np.array(tags_per_author[g][a])
+            total_count = sum(tag_distribution)
+            tag_probability = np.divide(tag_distribution, total_count)
+            plt.plot(np.arange(len(tags)), tag_probability-avg, c=colors[i], label=a)
+        plt.legend()
+        plt.xlabel('POS Tags')
+        plt.ylabel('Deviation from mean of probability of Tag')
+        plt.xticks(np.arange(len(tags)), [t.lower() for t in tags], rotation='vertical')
+        plt.tight_layout()
+        plt.savefig('tags_per_author_{}_mean.png'.format(g))
 
 
 if __name__ == '__main__':
