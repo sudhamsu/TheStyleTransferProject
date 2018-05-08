@@ -55,8 +55,6 @@ data = pickle.load(open('data/fantasy_wm_lfb_train.pkl', 'rb'))
 
 print('Done!\nTotal number of sentences:', len(data))
 sys.stdout.flush()
-# data = [document_tokenize(author, tokenize_words=True) for author in authors]
-# dlo = DataLoader(data, word2num, BATCH_SIZE, MAX_LENGTH)
 
 encoder = StyleTransferModel.Encoder(len(word2num), HIDDEN_SIZE)
 decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
@@ -87,15 +85,14 @@ encoder = StyleTransferModel.Encoder(len(word2num), HIDDEN_SIZE)
 decoders = [StyleTransferModel.AttentionDecoder(HIDDEN_SIZE, len(word2num), MAX_LENGTH, dropout_p=0) for _ in authors]
 # decoders = [StyleTransferModel.Decoder(HIDDEN_SIZE, len(word2num)) for _ in authors]
 
-# encoder.load_state_dict(torch.load(LOAD_DIR+'/encoder_after_epoch_3.pth'))
-# for i, d in enumerate(decoders):
-#     d.load_state_dict(torch.load(LOAD_DIR+'/decoder'+str(i)+'_after_epoch_3.pth'))
+encoder.load_state_dict(torch.load(LOAD_DIR+'/final_encoder.pth'))
+for i, d in enumerate(decoders):
+    d.load_state_dict(torch.load(LOAD_DIR+'/final_decoder'+str(i)+'.pth'))
 
 predictions = StyleTransferTrainer.test(word2num, num2word, test_data, encoder, decoders, MAX_LENGTH)
 cosine_similarity_vector = compute_content_preservation(predictions)
 
-# TODO: always make sure to change this description when you change the attention or teacher enforcing values.
-about = "The list of authors used: {}\nAttention decoder with complete teacher enforcing\n"
+about = "The list of authors used: {}\n".format(authors)
 print(about, file=open(LOAD_DIR + '/test_predictions.txt', 'a+'))
 sys.stdout.flush()
 target_predictions = []
@@ -110,7 +107,7 @@ for i in range(len(predictions)):
     sys.stdout.flush()
     target_predictions.append((b, predictions[i][1]))
 
-with open(LOAD_DIR + "/cosine_similarity_with_tf.pkl", 'wb') as f:
+with open(LOAD_DIR + "/cosine_similarity.pkl", 'wb') as f:
     pickle.dump(cosine_similarity_vector, f)
 
 with open(LOAD_DIR + "/target_predictions.pkl", "wb") as f:
