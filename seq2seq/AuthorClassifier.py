@@ -85,11 +85,13 @@ def test(model, data, word2num):
         count_correct_preds += (predictions[i] == data[i][0])
 
     test_acc = count_correct_preds / len(data)
-    print('Test accuracy: {:.4f}%'.format(test_acc*100))
+    test_acc_str = 'Test set accuracy: {:.4f}%'.format(test_acc*100)
+    print(test_acc_str)
     sys.stdout.flush()
+    return test_acc
 
 
-def predict(model, data, word2num):
+def predict(model, data, word2num, pre_split=True):
     model.eval()
     softmax = nn.Softmax(dim=1)
     predictions = []
@@ -99,6 +101,8 @@ def predict(model, data, word2num):
         model.lstm_hidden_state = model.init_lstm_hidden_state()
 
         a, line = data[i]
+        if not pre_split:
+            line = line.split(' ')
         line = torch.autograd.Variable(torch.LongTensor([uf.convert_to_vector(line, word2num)]))
         output = model(line)
         output = softmax(output)
@@ -107,3 +111,31 @@ def predict(model, data, word2num):
         predictions.append(pred.item())
 
     return predictions
+
+
+def test_translations(model, data, word2num, save_dir, test_acc):
+    predictions = predict(model, data, word2num, pre_split=False)
+    count_correct_preds = 0
+
+    for i in range(len(data)):
+        count_correct_preds += (predictions[i] == data[i][0])
+
+    test_acc_str = 'Test set accuracy: {:.4f}%'.format(test_acc * 100)
+    translated_acc = count_correct_preds / len(data)
+    translated_acc_str = 'Transferred set accuracy: {:.4f}%'.format(translated_acc*100)
+    print(translated_acc_str)
+    sys.stdout.flush()
+    with open(save_dir+'/test_predictions.txt', 'r') as file:
+        lines = file.readlines()
+        lines[1] = test_acc_str +'\n'
+        lines[2] = translated_acc_str + '\n'
+    with open(save_dir+'/classifier_predictions.txt', 'w') as file:
+        i = 0
+        for l, line in enumerate(lines):
+            if (l+1) > 4 and (l+1) % 4 == 0:
+                file.write('Predicted label after transfer: '+str(predictions[i])+' (Expected '+str(data[i][0])+')\n')
+                i += 1
+            file.write(line)
+        file.write('Predicted label after transfer: ' + str(predictions[i]) + '\n')
+
+    return translated_acc
